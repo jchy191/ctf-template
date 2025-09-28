@@ -85,7 +85,7 @@ def chat():
 
     # Post-guardrails
 
-    allowed_out = pre_guardrails(message)
+    allowed_out = post_guardrails(message)
 
     if not allowed_out:
         return jsonify({"response": "Sorry, I cannot respond to that."})
