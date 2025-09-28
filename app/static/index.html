@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>AI Chatbot</title>
+    <style>
+      body {
+        background: #071028;
+        color: #e6eef8;
+        font-family: system-ui, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+      }
+
+      .app {
+        background: #0b1220;
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 600px;
+        width: 100%;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 20px;
+      }
+
+      .muted {
+        color: #9aa4b2;
+        font-size: 14px;
+        margin-bottom: 12px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      textarea {
+        width: 100%;
+        padding: 3px;
+        border-radius: 6px;
+        border: none;
+        font-size: 14px;
+        resize: none;
+        margin-bottom: 12px;
+        margin-top: 12px;
+        background: #0f1724;
+        color: #e6eef8;
+      }
+
+      button {
+        background: #7dd3fc;
+        color: #042028;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      #response {
+        margin-top: 20px;
+        background: #0b2540;
+        padding: 14px;
+        border-radius: 8px;
+        white-space: pre-wrap;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        border-top-color: #7dd3fc;
+        animation: spin 0.9s linear infinite;
+        vertical-align: middle;
+        margin-left: 8px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        color: #ffb4b4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <h1>Title</h1>
+      <div class="muted">Subtitle</div>
+
+      <label for="input">Your prompt:</label>
+      <textarea
+        word-break="break-word"
+        id="input"
+        cols="72"
+        rows="4"
+        placeholder="e.g., TODO"
+      ></textarea
+      ><br />
+      <button id="submit">Submit</button>
+      <span id="loading"></span>
+
+      <div id="response"></div>
+    </div>
+
+    <script>
+      const inputEl = document.getElementById("input");
+      const submitBtn = document.getElementById("submit");
+      const responseEl = document.getElementById("response");
+      const loadingEl = document.getElementById("loading");
+
+      async function sendPrompt() {
+        const text = inputEl.value.trim();
+        if (!text) return;
+
+        responseEl.textContent = "";
+        loadingEl.innerHTML = '<span class="spinner"></span>';
+        submitBtn.disabled = true;
+
+        try {
+          const res = await fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text }),
+          });
+
+          const data = await res.json();
+          if (res.ok && data.response) {
+            responseEl.textContent = data.response;
+          } else {
+            responseEl.textContent = "Error: " + (data.error || res.statusText);
+            responseEl.classList.add("error");
+          }
+        } catch (err) {
+          responseEl.textContent = "Network error: " + err.message;
+          responseEl.classList.add("error");
+        } finally {
+          loadingEl.innerHTML = "";
+          submitBtn.disabled = false;
+        }
+      }
+
+      submitBtn.addEventListener("click", sendPrompt);
+      inputEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          sendPrompt();
+          inputEl.value = "";
+        }
+      });
+
+      // Autofocus
+      inputEl.focus();
+    </script>
+  </body>
+</html>
